@@ -96,7 +96,7 @@ namespace ConsoleAppCms2025
                 Console.WriteLine("1. Search Patient by MMR");
                 Console.WriteLine("2. Search Patient by Phone");
                 Console.WriteLine("3. Register Patient");
-                Console.WriteLine("4. View Patient Bills");
+                Console.WriteLine("4. View Patient Bills by MMR");
                 Console.WriteLine("5. Exit");
                 Console.Write("Choose an option: ");
                 string choice = Console.ReadLine();
@@ -169,69 +169,30 @@ namespace ConsoleAppCms2025
                         break;
 
                     case "3":
-                        Patient newPatient = new Patient();
-                        newPatient.MMRNumber = await patientService.GenerateNextMMRNumberAsync();
-                        Console.WriteLine($"Generated MMR Number: {newPatient.MMRNumber}");
-
-                        Console.Write("Enter Full Name: ");
-                        newPatient.FullName = Console.ReadLine();
-
-                        Console.Write("Enter Gender: ");
-                        newPatient.Gender = Console.ReadLine();
-
-                        int age;
-                        while (true)
-                        {
-                            Console.Write("Enter Age: ");
-                            if (int.TryParse(Console.ReadLine(), out age))
-                            {
-                                newPatient.Age = age;
-                                break;
-                            }
-                            Console.WriteLine("Invalid input. Please enter a valid number.");
-                        }
-
-                        Console.Write("Enter Phone: ");
-                        newPatient.Phone = Console.ReadLine();
-
-                        Console.Write("Enter Address: ");
-                        newPatient.Address = Console.ReadLine();
-
-                        Console.Write("Enter Membership ID (or leave blank): ");
-                        string memInput = Console.ReadLine();
-                        newPatient.MembershipId = string.IsNullOrEmpty(memInput) ? null : int.Parse(memInput);
-
-                        newPatient.IsActive = true;
-
-                        int added = await patientService.AddPatientAsync(newPatient);
-                        Console.ForegroundColor = added > 0 ? ConsoleColor.Green : ConsoleColor.Red;
-                        Console.WriteLine(added > 0 ? "Patient registered successfully!" : "Failed to register patient.");
-                        Console.ResetColor();
-
-                        if (added > 0)
-                            await ShowPatientMenuAsync(newPatient, appointmentService, user);
+                        await RegisterPatientAsync(patientService, appointmentService, user);
                         break;
 
-                    case "4":
-                        Console.Write("Enter Patient MMR Number: ");
-                        string mmrForBill = Console.ReadLine();
-                        var bills = await billingService.GetBillingsByPatientMMRAsync(mmrForBill);
+                    case "4": // View Patient Bills
+                        Console.Write("Enter Patient MMR: ");
+                        string mmr = Console.ReadLine();
+                        var bills = await billingService.GetBillingsByPatientMMRAsync(mmr);
 
                         if (bills.Count == 0)
                         {
                             Console.ForegroundColor = ConsoleColor.Red;
                             Console.WriteLine("No bills found for this patient.");
+                            Console.ResetColor();
                         }
                         else
                         {
                             Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"\nBilling details for {mmrForBill}:");
-                            foreach (var b in bills)
+                            Console.WriteLine($"{"BillId",-8} {"AppointmentId",-12} {"DoctorId",-8} {"ConsultationFee",-15} {"BillDate",-12}");
+                            foreach (var bill in bills)
                             {
-                                Console.WriteLine($"BillId: {b.BillId}, AppointmentId: {b.AppointmentId}, Consultation Fee: {b.ConsultationFee:C}");
+                                Console.WriteLine($"{bill.BillId,-8} {bill.AppointmentId,-12} {bill.DoctorId,-8} {bill.ConsultationFee,-15:C} {bill.BillDate:dd-MM-yyyy}");
                             }
+                            Console.ResetColor();
                         }
-                        Console.ResetColor();
                         break;
 
                     case "5":
@@ -243,6 +204,74 @@ namespace ConsoleAppCms2025
                         break;
                 }
             }
+        }
+
+        private static async Task RegisterPatientAsync(IPatientService patientService, IAppointmentService appointmentService, User user)
+        {
+            Patient newPatient = new Patient();
+            newPatient.MMRNumber = await patientService.GenerateNextMMRNumberAsync();
+            Console.WriteLine($"Generated MMR Number: {newPatient.MMRNumber}");
+
+            Console.Write("Enter Full Name: ");
+            newPatient.FullName = Console.ReadLine();
+
+            Console.Write("Enter Gender: ");
+            newPatient.Gender = Console.ReadLine();
+
+            DateTime dob;
+            while (true)
+            {
+                Console.Write("Enter Date of Birth (dd-MM-yyyy): ");
+                string dobInput = Console.ReadLine();
+                if (DateTime.TryParseExact(dobInput, "dd-MM-yyyy", null, System.Globalization.DateTimeStyles.None, out dob))
+                {
+                    if (dob > DateTime.Now)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid DOB. Cannot be in the future.");
+                        Console.ResetColor();
+                        continue;
+                    }
+                    int calculatedAge = DateTime.Now.Year - dob.Year;
+                    if (dob.AddYears(calculatedAge) > DateTime.Now) calculatedAge--;
+                    if (calculatedAge < 0 || calculatedAge > 120)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("Invalid Age. Must be between 0 and 120.");
+                        Console.ResetColor();
+                        continue;
+                    }
+                    newPatient.Age = calculatedAge;
+                    newPatient.DOB = dob;
+                    break;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Invalid DOB format.");
+                    Console.ResetColor();
+                }
+            }
+
+            Console.Write("Enter Phone: ");
+            newPatient.Phone = Console.ReadLine();
+
+            Console.Write("Enter Address: ");
+            newPatient.Address = Console.ReadLine();
+
+            Console.Write("Enter Membership ID (or leave blank): ");
+            string memInput = Console.ReadLine();
+            newPatient.MembershipId = string.IsNullOrEmpty(memInput) ? null : int.Parse(memInput);
+
+            newPatient.IsActive = true;
+
+            int added = await patientService.AddPatientAsync(newPatient);
+            Console.ForegroundColor = added > 0 ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.WriteLine(added > 0 ? "Patient registered successfully!" : "Failed to register patient.");
+            Console.ResetColor();
+
+            if (added > 0)
+                await ShowPatientMenuAsync(newPatient, appointmentService, user);
         }
 
         private static void DisplayPatientInfo(Patient patient)
@@ -287,19 +316,39 @@ namespace ConsoleAppCms2025
                     case "3":
                         Appointment newAppointment = new Appointment();
                         newAppointment.PatientMMR = patient.MMRNumber;
+                        newAppointment.UserId = user.UserId;
 
                         Console.Write("Enter Doctor ID: ");
                         newAppointment.DoctorId = int.Parse(Console.ReadLine());
 
-                        newAppointment.UserId = user.UserId;
+                        while (true)
+                        {
+                            Console.Write("Enter Appointment Date (Today/tomorrow): ");
+                            string dateInput = Console.ReadLine().ToLower();
+                            if (dateInput == "today")
+                            {
+                                newAppointment.AppointmentDate = DateTime.Today;
+                                break;
+                            }
+                            else if (dateInput == "tomorrow")
+                            {
+                                newAppointment.AppointmentDate = DateTime.Today.AddDays(1);
+                                break;
+                            }
+                            else
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Invalid input. Enter 'Today' or 'Tomorrow'.");
+                                Console.ResetColor();
+                            }
+                        }
 
-                        Console.Write("Enter Time Slot (e.g. 10:00 AM - 10:30 AM): ");
+                        Console.Write("Enter Time Slot (e.g., 10:00 AM - 10:30 AM): ");
                         newAppointment.TimeSlot = Console.ReadLine();
 
                         Console.Write("Enter Consultation Type (General/Follow-up): ");
                         newAppointment.ConsultationType = Console.ReadLine();
 
-                        newAppointment.AppointmentDate = DateTime.Now;
                         newAppointment.IsVisited = false;
 
                         var booked = await appointmentService.BookAppointmentAsync(newAppointment);
@@ -345,8 +394,7 @@ namespace ConsoleAppCms2025
             ILabResultRepository labRepo = new LabResultRepositoryImpl();
             ILabResultService labResultService = new LabResultServiceImpl(labRepo);
 
-            IBillingRepository billingRepo = new BillingRepositoryImpl();
-            IBillingService billingService = new BillingServiceImpl(billingRepo);
+            IDoctorService doctorServiceFull = new DoctorServiceImpl(new DoctorRepositoryImpl());
 
             int doctorId = 0;
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -376,86 +424,20 @@ namespace ConsoleAppCms2025
 
                 switch (choice)
                 {
-                    case "1":
-                        var appointments = await appointmentService.GetAppointmentsByDoctorAsync(doctorId);
-
-                        if (appointments.Count == 0)
-                        {
-                            Console.WriteLine("No appointments found.");
-                            break;
-                        }
-
-                        // --- Not Visited Appointments ---
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("\n--- Not Visited Appointments ---");
-                        Console.WriteLine($"{"AppId",-8} {"Token",-8} {"Date",-12} {"Time",-10} {"PatientMMR",-12} {"ConsultationFee",-12}");
-                        Console.ResetColor();
-
-                        foreach (var appt in appointments.FindAll(x => !x.IsVisited))
-                        {
-                            string consultation = "-";
-                            string dateStr = appt.AppointmentDate.ToString("dd-MM-yyyy");
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.WriteLine($"{appt.AppointmentId,-8} {appt.TokenNo,-8} {dateStr,-12} {appt.TimeSlot,-10} {appt.PatientMMR,-12} {consultation,-12}");
-                            Console.ResetColor();
-                        }
-
-                        // --- Visited Appointments ---
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("\n--- Visited Appointments ---");
-                        Console.WriteLine($"{"AppId",-8} {"Token",-8} {"Date",-12} {"Time",-10} {"PatientMMR",-12} {"ConsultationFee",-12}");
-                        Console.ResetColor();
-
-                        foreach (var appt in appointments.FindAll(x => x.IsVisited))
-                        {
-                            var bill = await billingService.GetBillingByAppointmentIdAsync(appt.AppointmentId);
-                            string consultation = bill != null && bill.ConsultationFee > 0 ? bill.ConsultationFee.ToString("C") : "-";
-                            string dateStr = appt.AppointmentDate.ToString("dd-MM-yyyy");
-
-                            Console.ForegroundColor = ConsoleColor.Green;
-                            Console.WriteLine($"{appt.AppointmentId,-8} {appt.TokenNo,-8} {dateStr,-12} {appt.TimeSlot,-10} {appt.PatientMMR,-12} {consultation,-12}");
-                            Console.ResetColor();
-                        }
+                    case "1": // View Appointments
+                        await DisplayAppointmentsAsync(appointmentService, doctorId);
                         break;
 
                     case "2": // Add Consultation
-                        int consultAppointmentId = ReadIntInput("Enter Appointment ID: ");
-                        string symptoms = ReadStringInput("Symptoms: ");
-                        string diagnosis = ReadStringInput("Diagnosis: ");
-                        string notes = ReadStringInput("Notes: ");
-
-                        await consultationService.AddConsultationAsync(consultAppointmentId, symptoms, diagnosis, notes);
-                        await appointmentService.MarkAsVisitedAsync(consultAppointmentId);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Consultation added and appointment marked as visited.");
-                        Console.ResetColor();
+                        await AddConsultationAsync(appointmentService, consultationService);
                         break;
 
                     case "3": // Prescribe Medicine
-                        int prescAppointmentId = ReadIntInput("Enter Appointment ID: ");
-                        string medicineName = ReadStringInput("Medicine Name: ");
-                        string dosage = ReadStringInput("Dosage: ");
-                        string duration = ReadStringInput("Duration (e.g., 5 days): ");
-                        int qty = ReadIntInput("Quantity: ");
-
-                        await prescriptionService.AddPrescriptionAsync(prescAppointmentId, medicineName, dosage, duration, qty);
-                        await appointmentService.MarkAsVisitedAsync(prescAppointmentId);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Prescription added: AppointmentId={prescAppointmentId}, MedicineName={medicineName}, Dosage={dosage}, Duration={duration}, Qty={qty}");
-                        Console.ResetColor();
+                        await AddPrescriptionAsync(prescriptionService);
                         break;
 
                     case "4": // Add Lab Result
-                        int labAppointmentId = ReadIntInput("Enter Appointment ID: ");
-                        string labTestName = ReadStringInput("Lab Test Name: ");
-                        string resultValue = ReadStringInput("Lab Test Value: ");
-                        string remarks = ReadStringInput("Remarks: ");
-
-                        await labResultService.AddLabResultAsync(labAppointmentId, labTestName, resultValue, remarks);
-                        await appointmentService.MarkAsVisitedAsync(labAppointmentId);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine("Lab result added and appointment marked as visited.");
-                        Console.ResetColor();
+                        await AddLabResultAsync(labResultService);
                         break;
 
                     case "5":
@@ -467,6 +449,85 @@ namespace ConsoleAppCms2025
                         break;
                 }
             }
+        }
+
+        private static async Task DisplayAppointmentsAsync(IAppointmentService appointmentService, int doctorId)
+        {
+            var appointments = await appointmentService.GetAppointmentsByDoctorAsync(doctorId);
+
+            if (appointments.Count == 0)
+            {
+                Console.WriteLine("No appointments found.");
+                return;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("\n--- Not Visited Appointments ---");
+            Console.WriteLine($"{"AppId",-8} {"Token",-8} {"Date",-12} {"Time",-10} {"PatientMMR",-12}");
+            Console.ResetColor();
+
+            foreach (var appt in appointments.FindAll(x => !x.IsVisited))
+            {
+                string dateStr = appt.AppointmentDate.ToString("dd-MM-yyyy");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"{appt.AppointmentId,-8} {appt.TokenNo,-8} {dateStr,-12} {appt.TimeSlot,-10} {appt.PatientMMR,-12}");
+                Console.ResetColor();
+            }
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("\n--- Visited Appointments ---");
+            Console.WriteLine($"{"AppId",-8} {"Token",-8} {"Date",-12} {"Time",-10} {"PatientMMR",-12}");
+            Console.ResetColor();
+
+            foreach (var appt in appointments.FindAll(x => x.IsVisited))
+            {
+                string dateStr = appt.AppointmentDate.ToString("dd-MM-yyyy");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"{appt.AppointmentId,-8} {appt.TokenNo,-8} {dateStr,-12} {appt.TimeSlot,-10} {appt.PatientMMR,-12}");
+                Console.ResetColor();
+            }
+        }
+
+        private static async Task AddConsultationAsync(IAppointmentService appointmentService, IConsultationService consultationService)
+        {
+            int consultAppointmentId = ReadIntInput("Enter Appointment ID: ");
+            string symptoms = ReadStringInput("Symptoms: ");
+            string diagnosis = ReadStringInput("Diagnosis: ");
+            string notes = ReadStringInput("Notes: ");
+
+            await consultationService.AddConsultationAsync(consultAppointmentId, symptoms, diagnosis, notes);
+            await appointmentService.MarkAsVisitedAsync(consultAppointmentId);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Consultation added and appointment marked as visited.");
+            Console.ResetColor();
+        }
+
+        private static async Task AddPrescriptionAsync(IPrescriptionService prescriptionService)
+        {
+            int prescAppointmentId = ReadIntInput("Enter Appointment ID: ");
+            string medicineName = ReadStringInput("Medicine Name: ");
+            string dosage = ReadStringInput("Dosage: ");
+            string duration = ReadStringInput("Duration (e.g., 5 days): ");
+            int qty = ReadIntInput("Quantity: ");
+
+            await prescriptionService.AddPrescriptionAsync(prescAppointmentId, medicineName, dosage, duration, qty);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Prescription added: AppointmentId={prescAppointmentId}, MedicineName={medicineName}, Dosage={dosage}, Duration={duration}, Qty={qty}");
+            Console.ResetColor();
+        }
+
+        private static async Task AddLabResultAsync(ILabResultService labResultService)
+        {
+            int labAppointmentId = ReadIntInput("Enter Appointment ID: ");
+            string labTestName = ReadStringInput("Lab Test Name: ");
+            string resultValue = ReadStringInput("Lab Test Value: ");
+            string remarks = ReadStringInput("Remarks: ");
+
+            await labResultService.AddLabResultAsync(labAppointmentId, labTestName, resultValue, remarks);
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("Lab result added.");
+            Console.ResetColor();
         }
         #endregion
 
@@ -489,4 +550,3 @@ namespace ConsoleAppCms2025
         }
     }
 }
-

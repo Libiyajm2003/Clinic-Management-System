@@ -65,3 +65,4 @@ E:\Cmsv2025 Project\ConsoleAppCmsv2025-Solution\ConsoleAppCmsv2025\bin\Debug\net
 E:\Cmsv2025 Project\ConsoleAppCmsv2025-Solution\ConsoleAppCmsv2025\bin\Debug\net8.0\ClassLibraryDatabaseConnection.dll
 E:\Cmsv2025 Project\ConsoleAppCmsv2025-Solution\ConsoleAppCmsv2025\bin\Debug\net8.0\ClassLibraryDatabaseConnection.pdb
 E:\Cmsv2025 Project\ConsoleAppCmsv2025-Solution\ConsoleAppCmsv2025\obj\Debug\net8.0\ConsoleA.6DCC8F43.Up2Date
+E:\Cmsv2025 Project\ConsoleAppCmsv2025-Solution\ConsoleAppCmsv2025\obj\Debug\net8.0\ConsoleAppCmsv2025.sourcelink.json

@@ -84,13 +84,14 @@ namespace ConsoleAppCms2025.Repository
             using SqlConnection con = new SqlConnection(_connectionString);
             await con.OpenAsync();
 
-            string query = @"INSERT INTO TblPatient(MMRNumber, FullName, Gender, Age, Phone, Address, MembershipId, IsActive) 
-                             VALUES(@mmr, @fullName, @gender, @age, @phone, @address, @membershipId, @isActive)";
+            string query = @"INSERT INTO TblPatient(MMRNumber, FullName, Gender, Age, DOB, Phone, Address, MembershipId, IsActive) 
+                     VALUES(@mmr, @fullName, @gender, @age, @dob, @phone, @address, @membershipId, @isActive)";
             using SqlCommand cmd = new SqlCommand(query, con);
             cmd.Parameters.AddWithValue("@mmr", patient.MMRNumber);
             cmd.Parameters.AddWithValue("@fullName", patient.FullName);
             cmd.Parameters.AddWithValue("@gender", patient.Gender);
             cmd.Parameters.AddWithValue("@age", patient.Age);
+            cmd.Parameters.AddWithValue("@dob", patient.DOB);
             cmd.Parameters.AddWithValue("@phone", patient.Phone);
             cmd.Parameters.AddWithValue("@address", patient.Address ?? (object)DBNull.Value);
             cmd.Parameters.AddWithValue("@membershipId", patient.MembershipId ?? (object)DBNull.Value);
