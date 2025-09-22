@@ -141,7 +141,10 @@ namespace ConsoleAppCms2025
 
                                 for (int i = 0; i < patientsByPhone.Count; i++)
                                 {
+                                    Console.ForegroundColor = ConsoleColor.Green;
                                     Console.WriteLine($"{i + 1}. MMR: {patientsByPhone[i].MMRNumber}, Name: {patientsByPhone[i].FullName}, Age: {patientsByPhone[i].Age}, Gender: {patientsByPhone[i].Gender}");
+                                    Console.ResetColor();
+
                                 }
 
                                 Console.Write("Choose a patient (enter number): ");
@@ -232,8 +235,10 @@ namespace ConsoleAppCms2025
                         Console.ResetColor();
                         continue;
                     }
+
                     int calculatedAge = DateTime.Now.Year - dob.Year;
                     if (dob.AddYears(calculatedAge) > DateTime.Now) calculatedAge--;
+
                     if (calculatedAge < 0 || calculatedAge > 120)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
@@ -241,8 +246,15 @@ namespace ConsoleAppCms2025
                         Console.ResetColor();
                         continue;
                     }
+
                     newPatient.Age = calculatedAge;
                     newPatient.DOB = dob;
+
+                    // Show calculated age
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"Calculated Age: {newPatient.Age}");
+                    Console.ResetColor();
+
                     break;
                 }
                 else
@@ -277,7 +289,16 @@ namespace ConsoleAppCms2025
         private static void DisplayPatientInfo(Patient patient)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"MMR: {patient.MMRNumber}, Name: {patient.FullName}, Age: {patient.Age}, Phone: {patient.Phone}, Gender: {patient.Gender}, Address: {patient.Address}, Membership: {patient.MembershipId}");
+            Console.WriteLine(
+                $"MMR: {patient.MMRNumber}, " +
+                $"Name: {patient.FullName}, " +
+                $"Gender: {patient.Gender}, " +
+                $"DOB: {patient.DOB:dd-MM-yyyy}, " +
+                $"Age: {patient.Age}, " +
+                $"Phone: {patient.Phone}, " +
+                $"Address: {patient.Address}, " +
+                $"Membership: {patient.MembershipId}"
+            );
             Console.ResetColor();
         }
 
@@ -323,7 +344,7 @@ namespace ConsoleAppCms2025
 
                         while (true)
                         {
-                            Console.Write("Enter Appointment Date (Today/tomorrow): ");
+                            Console.Write("Enter Appointment Schedule (Today/tomorrow): ");
                             string dateInput = Console.ReadLine().ToLower();
                             if (dateInput == "today")
                             {
@@ -545,8 +566,21 @@ namespace ConsoleAppCms2025
 
         private static string ReadStringInput(string prompt)
         {
-            Console.Write(prompt);
-            return Console.ReadLine();
+            string input;
+            do
+            {
+                Console.Write(prompt);
+                input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("This field cannot be empty. Please enter a value.");
+                    Console.ResetColor();
+                }
+            } while (string.IsNullOrWhiteSpace(input));
+
+            return input;
         }
+
     }
 }
