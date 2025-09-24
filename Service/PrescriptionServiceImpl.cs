@@ -4,16 +4,22 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Service
 {
+    /// <summary>
+    /// Implements prescription operations by delegating to repository.
+    /// </summary>
     public class PrescriptionServiceImpl : IPrescriptionService
     {
         private readonly IPrescriptionRepository _prescriptionRepo;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="PrescriptionServiceImpl"/>.
+        /// </summary>
         public PrescriptionServiceImpl(IPrescriptionRepository prescriptionRepo)
         {
             _prescriptionRepo = prescriptionRepo;
         }
 
-        // Updated method to use MedicineName instead of MedicineId
+        /// <inheritdoc />
         public async Task AddPrescriptionAsync(int appointmentId, string medicineName, string dosage, string duration, int qty = 1)
         {
             MedicinePrescription prescription = new MedicinePrescription

@@ -8,10 +8,14 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCmsv2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of consultation data access operations.
+    /// </summary>
     public class ConsultationRepositoryImpl : IConsultationRepository
     {
         private readonly string _connectionString = @"Server=localhost;Database=cmsv2025db;Trusted_Connection=True;Encrypt=False;";
 
+        /// <inheritdoc />
         public async Task<bool> AddConsultationAsync(int appointmentId, string symptoms, string diagnosis, string notes)
         {
             using SqlConnection con = new SqlConnection(_connectionString);

@@ -9,11 +9,15 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Service
 {
+    /// <summary>
+    /// Implements consultation operations by persisting details to the database.
+    /// </summary>
     public class ConsultationServiceImpl : IConsultationService
     {
         private readonly string _connectionString =
             System.Configuration.ConfigurationManager.ConnectionStrings["CsWinSql"].ConnectionString;
 
+        /// <inheritdoc />
         public async Task<bool> AddConsultationAsync(int appointmentId, string symptoms, string diagnosis, string notes)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))

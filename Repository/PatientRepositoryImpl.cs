@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation for patient persistence and queries.
+    /// </summary>
     public class PatientRepositoryImpl : IPatientRepository
     {
         private readonly string _connectionString;
@@ -15,7 +18,7 @@ namespace ConsoleAppCms2025.Repository
             _connectionString = @"Server=localhost;Database=cmsv2025db;Trusted_Connection=True;Encrypt=False;";
         }
 
-        // Get patient by MMR
+        /// <inheritdoc />
         public async Task<Patient> GetPatientByMMRAsync(string mmr)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -44,8 +47,7 @@ namespace ConsoleAppCms2025.Repository
             return null;
         }
 
-        // Get patient by Phone
-        // Return multiple patients
+        /// <inheritdoc />
         public async Task<List<Patient>> GetPatientsByPhoneAsync(string phone)
         {
             var patients = new List<Patient>();
@@ -78,7 +80,7 @@ namespace ConsoleAppCms2025.Repository
         }
 
 
-        // Add new patient
+        /// <inheritdoc />
         public async Task<int> AddPatientAsync(Patient patient)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -100,7 +102,7 @@ namespace ConsoleAppCms2025.Repository
             return await cmd.ExecuteNonQueryAsync();
         }
 
-        // Generate next MMR number
+        /// <inheritdoc />
         public async Task<string> GenerateNextMMRNumberAsync()
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -118,7 +120,9 @@ namespace ConsoleAppCms2025.Repository
             return "MMR" + number;
         }
 
-        // Update Patient Info (optional for future)
+        /// <summary>
+        /// Updates patient fields. Reserved for future use.
+        /// </summary>
         public async Task<int> UpdatePatientAsync(Patient patient)
         {
             using SqlConnection con = new SqlConnection(_connectionString);

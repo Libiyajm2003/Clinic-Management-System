@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of lab result persistence.
+    /// </summary>
     public class LabResultRepositoryImpl : ILabResultRepository
     {
         private readonly string connectionString = @"Data Source=.;Initial Catalog=cmsv2025db;Integrated Security=True;TrustServerCertificate=True";
@@ -17,6 +20,7 @@ namespace ConsoleAppCms2025.Repository
             return new SqlConnection(builder.ConnectionString);
         }
 
+        /// <inheritdoc />
         public async Task AddLabResultAsync(int appointmentId, string labTestName, string labTestValue, string remarks)
         {
             using SqlConnection con = GetConnection();

@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of billing data access operations.
+    /// </summary>
     public class BillingRepositoryImpl : IBillingRepository
     {
         private readonly string _connectionString;
@@ -15,6 +18,7 @@ namespace ConsoleAppCms2025.Repository
             _connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["CsWinSql"].ConnectionString;
         }
 
+        /// <inheritdoc />
         public async Task<int> AddBillingAsync(Billing bill)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -38,6 +42,7 @@ namespace ConsoleAppCms2025.Repository
             return await cmd.ExecuteNonQueryAsync();
         }
 
+        /// <inheritdoc />
         public async Task<Billing> GetBillingByAppointmentIdAsync(int appointmentId)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -68,6 +73,7 @@ namespace ConsoleAppCms2025.Repository
             return null;
         }
 
+        /// <inheritdoc />
         public async Task<List<Billing>> GetBillingsByPatientMMRAsync(string patientMMR)
         {
             var billings = new List<Billing>();
@@ -75,7 +81,7 @@ namespace ConsoleAppCms2025.Repository
             using SqlConnection con = new SqlConnection(_connectionString);
             await con.OpenAsync();
 
-            string query = @"SELECT BillId, AppointmentId, ConsultationFee, MedicineCharges, LabCharges, TotalAmount, BillDate, IsPaid
+            string query = @"SELECT BillId, AppointmentId, DoctorId, ConsultationFee, MedicineCharges, LabCharges, TotalAmount, BillDate, IsPaid
                              FROM TblBilling
                              WHERE PatientMMR = @mmr";
 
@@ -89,6 +95,7 @@ namespace ConsoleAppCms2025.Repository
                 {
                     BillId = Convert.ToInt32(reader["BillId"]),
                     AppointmentId = Convert.ToInt32(reader["AppointmentId"]),
+                    DoctorId = reader["DoctorId"] == DBNull.Value ? 0 : Convert.ToInt32(reader["DoctorId"]),
                     ConsultationFee = reader["ConsultationFee"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["ConsultationFee"]),
                     MedicineCharges = reader["MedicineCharges"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["MedicineCharges"]),
                     LabCharges = reader["LabCharges"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["LabCharges"]),
@@ -101,6 +108,7 @@ namespace ConsoleAppCms2025.Repository
             return billings;
         }
 
+        /// <inheritdoc />
         public async Task<decimal> GetMedicineChargesByAppointmentAsync(int appointmentId)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -119,6 +127,7 @@ namespace ConsoleAppCms2025.Repository
             return result == DBNull.Value || result == null ? 0 : Convert.ToDecimal(result);
         }
 
+        /// <inheritdoc />
         public async Task<decimal> GetLabChargesByAppointmentAsync(int appointmentId)
         {
             using SqlConnection con = new SqlConnection(_connectionString);

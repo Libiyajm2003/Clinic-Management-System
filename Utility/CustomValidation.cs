@@ -3,12 +3,18 @@ using System.Text.RegularExpressions;
 
 namespace ConsoleAppCms2025.Utility
 {
+    /// <summary>
+    /// Provides custom validation utilities and masked password input.
+    /// </summary>
     public class CustomValidation
     {
         #region 1 - UserName validation
         // User name should not be empty
         // User name should contain only letters, numbers, underscores, and dot
         // User name max length = 10
+        /// <summary>
+        /// Validates username rules: non-empty, max 15 chars, alphanumerics, underscore and dot.
+        /// </summary>
         public static bool IsValidUserName(string userName)
         {
             return !string.IsNullOrWhiteSpace(userName) &&
@@ -24,6 +30,9 @@ namespace ConsoleAppCms2025.Utility
         //   - one lowercase letter
         //   - one digit
         //   - one special character
+        /// <summary>
+        /// Validates password complexity: at least one upper, lower, digit and special, length >= 4.
+        /// </summary>
         public static bool IsValidPassword(string password)
         {
             return !string.IsNullOrWhiteSpace(password) &&
@@ -32,6 +41,9 @@ namespace ConsoleAppCms2025.Utility
         #endregion
 
         #region 3 - Read password with * mask
+        /// <summary>
+        /// Reads password from console replacing characters with '*'.
+        /// </summary>
         public static string ReadPassword()
         {
             string password = "";

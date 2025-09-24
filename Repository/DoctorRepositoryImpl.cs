@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of doctor queries.
+    /// </summary>
     public class DoctorRepositoryImpl : IDoctorRepository
     {
         private readonly string connectionString = @"Data Source=.;Initial Catalog=cmsv2025db;Integrated Security=True";
@@ -18,6 +21,7 @@ namespace ConsoleAppCms2025.Repository
             return new SqlConnection(builder.ConnectionString);
         }
 
+        /// <inheritdoc />
         public async Task<List<Doctor>> GetAllDoctorsAsync()
         {
             List<Doctor> doctors = new();
@@ -44,6 +48,7 @@ namespace ConsoleAppCms2025.Repository
             return doctors;
         }
 
+        /// <inheritdoc />
         public async Task<Doctor> GetDoctorByIdAsync(int doctorId)
         {
             using SqlConnection con = GetConnection();

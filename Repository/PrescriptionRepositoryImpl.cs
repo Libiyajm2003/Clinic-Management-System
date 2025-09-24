@@ -4,10 +4,14 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation for prescription persistence.
+    /// </summary>
     public class PrescriptionRepositoryImpl : IPrescriptionRepository
     {
         private readonly string connectionString = @"Data Source=.;Initial Catalog=cmsv2025db;Integrated Security=True;TrustServerCertificate=True";
 
+        /// <inheritdoc />
         public async Task AddPrescriptionAsync(MedicinePrescription prescription)
         {
             using SqlConnection con = new SqlConnection(connectionString);

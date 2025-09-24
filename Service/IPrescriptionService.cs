@@ -2,9 +2,14 @@
 
 namespace ConsoleAppCms2025.Service
 {
+    /// <summary>
+    /// Exposes operations for adding medicine prescriptions.
+    /// </summary>
     public interface IPrescriptionService
     {
-        // Use MedicineName instead of MedicineId, and include Duration and Qty
+        /// <summary>
+        /// Adds a prescription using medicine name lookup, dosage, duration and quantity.
+        /// </summary>
         Task AddPrescriptionAsync(int appointmentId, string medicineName, string dosage, string duration, int qty = 1);
     }
 }

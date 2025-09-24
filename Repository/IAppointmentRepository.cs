@@ -4,18 +4,29 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// Data access operations for appointments.
+    /// </summary>
     public interface IAppointmentRepository
     {
-        // Get all appointments for a doctor
+        /// <summary>
+        /// Gets all appointments for the specified doctor.
+        /// </summary>
         Task<List<Appointment>> GetAppointmentsByDoctorAsync(int doctorId);
 
-        // Get a single appointment by ID
+        /// <summary>
+        /// Gets a single appointment by its identifier.
+        /// </summary>
         Task<Appointment> GetAppointmentByIdAsync(int appointmentId);
 
-        // Book a new appointment
+        /// <summary>
+        /// Inserts a new appointment and returns the persisted entity.
+        /// </summary>
         Task<Appointment> BookAppointmentAsync(Appointment appointment);
 
-        // Mark an appointment as visited
+        /// <summary>
+        /// Marks an appointment as visited.
+        /// </summary>
         Task<bool> MarkVisitedAsync(int appointmentId);
     }
 }

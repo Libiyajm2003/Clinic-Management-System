@@ -6,32 +6,42 @@ using System.Collections.Generic;
 
 namespace ConsoleAppCms2025.Service
 {
+    /// <summary>
+    /// Implements appointment-related operations by delegating to the repository
+    /// and handling cross-cutting concerns when required.
+    /// </summary>
     public class AppointmentServiceImpl : IAppointmentService
     {
         private readonly IAppointmentRepository _appointmentRepo;
         private readonly string _connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["CsWinSql"].ConnectionString;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="AppointmentServiceImpl"/>.
+        /// </summary>
         public AppointmentServiceImpl(IAppointmentRepository appointmentRepo)
         {
             _appointmentRepo = appointmentRepo;
         }
 
+        /// <inheritdoc />
         public Task<List<Appointment>> GetAppointmentsByDoctorAsync(int doctorId)
         {
             return _appointmentRepo.GetAppointmentsByDoctorAsync(doctorId);
         }
 
+        /// <inheritdoc />
         public Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
         {
             return _appointmentRepo.GetAppointmentByIdAsync(appointmentId);
         }
 
+        /// <inheritdoc />
         public Task<Appointment> BookAppointmentAsync(Appointment appointment)
         {
             return _appointmentRepo.BookAppointmentAsync(appointment);
         }
 
-        // ✅ Implementation for marking appointment as visited
+        /// <inheritdoc />
         public async Task MarkAsVisitedAsync(int appointmentId)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -45,7 +55,5 @@ namespace ConsoleAppCms2025.Service
                 }
             }
         }
-
-
     }
 }

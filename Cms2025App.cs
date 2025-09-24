@@ -9,11 +9,17 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025
 {
+    /// <summary>
+    /// Console application entry point and UI flow for Clinic Management System 2025.
+    /// </summary>
     public class Cms2025App
     {
         private static readonly string _connectionString =
             System.Configuration.ConfigurationManager.ConnectionStrings["CsWinSql"].ConnectionString;
 
+        /// <summary>
+        /// Application entry point. Handles login and routes to dashboards.
+        /// </summary>
         static async Task Main(string[] args)
         {
             while (true)
@@ -77,6 +83,9 @@ namespace ConsoleAppCms2025
         }
 
         #region Receptionist Dashboard
+        /// <summary>
+        /// Displays the receptionist dashboard and its actions.
+        /// </summary>
         private static async Task ShowReceptionistDashboardAsync(User user)
         {
             IPatientRepository patientRepo = new PatientRepositoryImpl();
@@ -209,6 +218,9 @@ namespace ConsoleAppCms2025
             }
         }
 
+        /// <summary>
+        /// Registers a new patient and optionally proceeds to the patient menu.
+        /// </summary>
         private static async Task RegisterPatientAsync(IPatientService patientService, IAppointmentService appointmentService, User user)
         {
             Patient newPatient = new Patient();
@@ -266,7 +278,19 @@ namespace ConsoleAppCms2025
             }
 
             Console.Write("Enter Phone: ");
-            newPatient.Phone = Console.ReadLine();
+            string phone = Console.ReadLine();
+
+            // Validate phone number (must be exactly 10 digits)
+            if (phone.Length == 10 && phone.All(char.IsDigit))
+            {
+                newPatient.Phone = phone;
+            }
+            else
+            {
+                Console.WriteLine(" Invalid phone number! Please enter a 10-digit number.");
+                return; // stop registration
+            }
+
 
             Console.Write("Enter Address: ");
             newPatient.Address = Console.ReadLine();
@@ -286,6 +310,9 @@ namespace ConsoleAppCms2025
                 await ShowPatientMenuAsync(newPatient, appointmentService, user);
         }
 
+        /// <summary>
+        /// Prints patient information to the console.
+        /// </summary>
         private static void DisplayPatientInfo(Patient patient)
         {
             Console.ForegroundColor = ConsoleColor.Green;
@@ -302,6 +329,9 @@ namespace ConsoleAppCms2025
             Console.ResetColor();
         }
 
+        /// <summary>
+        /// Shows patient-specific actions such as viewing details and booking appointments.
+        /// </summary>
         private static async Task ShowPatientMenuAsync(Patient patient, IAppointmentService appointmentService, User user)
         {
             bool back = false;
@@ -335,16 +365,51 @@ namespace ConsoleAppCms2025
                         break;
 
                     case "3":
+                        // Show doctors list before booking and validate selection
+                        IDoctorRepository dRepo = new DoctorRepositoryImpl();
+                        IDoctorService dService = new DoctorServiceImpl(dRepo);
+                        var allDoctors = await dService.GetAllDoctorsAsync();
+                        if (allDoctors == null || allDoctors.Count == 0)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("No doctors available to book.");
+                            Console.ResetColor();
+                            break;
+                        }
+
+                        Console.WriteLine("\nAvailable Doctors:");
+                        foreach (var doc in allDoctors)
+                        {
+                            Console.WriteLine($"{doc.DoctorId}. {doc.DoctorName} ({doc.SpecializationName}) - Fee: {doc.ConsultationFee:C}");
+                        }
+
                         Appointment newAppointment = new Appointment();
                         newAppointment.PatientMMR = patient.MMRNumber;
                         newAppointment.UserId = user.UserId;
 
-                        Console.Write("Enter Doctor ID: ");
-                        newAppointment.DoctorId = int.Parse(Console.ReadLine());
-
+                        // doctor selection with validation
                         while (true)
                         {
-                            Console.Write("Enter Appointment Schedule (Today/tomorrow): ");
+                            Console.Write("Enter Doctor ID: ");
+                            string docInput = Console.ReadLine();
+                            if (int.TryParse(docInput, out int selectedDoctorId))
+                            {
+                                var doctor = await dService.GetDoctorByIdAsync(selectedDoctorId);
+                                if (doctor != null)
+                                {
+                                    newAppointment.DoctorId = selectedDoctorId;
+                                    break;
+                                }
+                            }
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine("Invalid Doctor ID. Please choose from the list above.");
+                            Console.ResetColor();
+                        }
+
+                        //  Today/Tomorrow selection
+                        while (true)
+                        {
+                            Console.Write("Enter Appointment Schedule (Today/Tomorrow): ");
                             string dateInput = Console.ReadLine().ToLower();
                             if (dateInput == "today")
                             {
@@ -364,12 +429,37 @@ namespace ConsoleAppCms2025
                             }
                         }
 
-                        Console.Write("Enter Time Slot (e.g., 10:00 AM - 10:30 AM): ");
-                        newAppointment.TimeSlot = Console.ReadLine();
+                        //  Time validation loop
+                        while (true)
+                        {
+                            Console.Write("Enter Time Slot (e.g., 10:30 AM): ");
+                            string inputTime = Console.ReadLine();
+                            if (DateTime.TryParse(inputTime, out DateTime enteredTime))
+                            {
+                                DateTime fullSlot = newAppointment.AppointmentDate.Add(enteredTime.TimeOfDay);
+
+                                if (fullSlot > DateTime.Now)
+                                {
+                                    newAppointment.TimeSlot = fullSlot.ToString("hh:mm tt");
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.ForegroundColor = ConsoleColor.Red;
+                                    Console.WriteLine(" Time slot must be after the current system time.");
+                                    Console.ResetColor();
+                                }
+                            }
+                            else
+                            {
+                                Console.ForegroundColor = ConsoleColor.Red;
+                                Console.WriteLine("Invalid time format");
+                                Console.ResetColor();
+                            }
+                        }
 
                         Console.Write("Enter Consultation Type (General/Follow-up): ");
                         newAppointment.ConsultationType = Console.ReadLine();
-
                         newAppointment.IsVisited = false;
 
                         var booked = await appointmentService.BookAppointmentAsync(newAppointment);
@@ -402,6 +492,9 @@ namespace ConsoleAppCms2025
         #endregion
 
         #region Doctor Dashboard
+        /// <summary>
+        /// Displays the doctor dashboard and its actions.
+        /// </summary>
         private static async Task ShowDoctorDashboardAsync(User user)
         {
             IAppointmentRepository appointmentRepo = new AppointmentRepositoryImpl();
@@ -472,6 +565,9 @@ namespace ConsoleAppCms2025
             }
         }
 
+        /// <summary>
+        /// Renders appointments for the specified doctor grouped by visit status.
+        /// </summary>
         private static async Task DisplayAppointmentsAsync(IAppointmentService appointmentService, int doctorId)
         {
             var appointments = await appointmentService.GetAppointmentsByDoctorAsync(doctorId);
@@ -509,6 +605,9 @@ namespace ConsoleAppCms2025
             }
         }
 
+        /// <summary>
+        /// Records a consultation and marks the appointment as visited.
+        /// </summary>
         private static async Task AddConsultationAsync(IAppointmentService appointmentService, IConsultationService consultationService)
         {
             int consultAppointmentId = ReadIntInput("Enter Appointment ID: ");
@@ -524,6 +623,9 @@ namespace ConsoleAppCms2025
             Console.ResetColor();
         }
 
+        /// <summary>
+        /// Adds a prescription for a given appointment.
+        /// </summary>
         private static async Task AddPrescriptionAsync(IPrescriptionService prescriptionService)
         {
             int prescAppointmentId = ReadIntInput("Enter Appointment ID: ");
@@ -538,6 +640,9 @@ namespace ConsoleAppCms2025
             Console.ResetColor();
         }
 
+        /// <summary>
+        /// Stores lab result details for an appointment.
+        /// </summary>
         private static async Task AddLabResultAsync(ILabResultService labResultService)
         {
             int labAppointmentId = ReadIntInput("Enter Appointment ID: ");
@@ -552,6 +657,9 @@ namespace ConsoleAppCms2025
         }
         #endregion
 
+        /// <summary>
+        /// Reads and validates an integer input from the console.
+        /// </summary>
         private static int ReadIntInput(string prompt)
         {
             int value;
@@ -564,6 +672,9 @@ namespace ConsoleAppCms2025
             }
         }
 
+        /// <summary>
+        /// Reads a non-empty string input from the console.
+        /// </summary>
         private static string ReadStringInput(string prompt)
         {
             string input;

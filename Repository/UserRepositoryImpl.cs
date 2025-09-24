@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of user authentication and CRUD operations.
+    /// </summary>
     public class UserRepositoryImpl : IUserRepository
     {
         private readonly string _connectionString;
@@ -16,6 +19,7 @@ namespace ConsoleAppCms2025.Repository
             _connectionString = @"Server=localhost;Database=cmsv2025db;Trusted_Connection=True;Encrypt=False;";
         }
 
+        /// <inheritdoc />
         public async Task<User> LoginAsync(string username, string password)
         {
             using SqlConnection con = new SqlConnection(_connectionString);
@@ -58,10 +62,15 @@ namespace ConsoleAppCms2025.Repository
         }
 
         // CRUD placeholders
+        /// <inheritdoc />
         public Task AddUserAsync(User user) => Task.CompletedTask;
+        /// <inheritdoc />
         public Task DeleteUserAsync(int userId) => Task.CompletedTask;
+        /// <inheritdoc />
         public Task<List<User>> GetAllUsersAsync() => Task.FromResult(new List<User>());
+        /// <inheritdoc />
         public Task<User> GetUserByIdAsync(int userId) => Task.FromResult<User>(null);
+        /// <inheritdoc />
         public Task UpdateUserAsync(User user) => Task.CompletedTask;
     }
 }

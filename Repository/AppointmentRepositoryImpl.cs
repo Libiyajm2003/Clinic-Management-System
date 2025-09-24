@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation for appointment persistence and queries.
+    /// </summary>
     public class AppointmentRepositoryImpl : IAppointmentRepository
     {
         private readonly string _connectionString;
@@ -15,7 +18,7 @@ namespace ConsoleAppCms2025.Repository
             _connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["CsWinSql"].ConnectionString;
         }
 
-        // Get all appointments for a doctor
+        /// <inheritdoc />
         public async Task<List<Appointment>> GetAppointmentsByDoctorAsync(int doctorId)
         {
             var appointments = new List<Appointment>();
@@ -53,7 +56,7 @@ namespace ConsoleAppCms2025.Repository
             return appointments;
         }
 
-        // Get a single appointment by ID
+        /// <inheritdoc />
         public async Task<Appointment> GetAppointmentByIdAsync(int appointmentId)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -89,7 +92,7 @@ namespace ConsoleAppCms2025.Repository
             return null;
         }
 
-        // Book a new appointment
+        /// <inheritdoc />
         public async Task<Appointment> BookAppointmentAsync(Appointment appointment)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))
@@ -131,7 +134,7 @@ namespace ConsoleAppCms2025.Repository
             return appointment;
         }
 
-        // ✅ Mark an appointment as visited
+        /// <inheritdoc />
         public async Task<bool> MarkVisitedAsync(int appointmentId)
         {
             using (SqlConnection con = new SqlConnection(_connectionString))

@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleAppCms2025.Repository
 {
+    /// <summary>
+    /// SQL Server implementation of role data access operations.
+    /// </summary>
     public class RoleRepositoryImpl : IRoleRepository
     {
         private readonly string _connectionString;
@@ -17,6 +20,7 @@ namespace ConsoleAppCms2025.Repository
             _connectionString = ConfigurationManager.ConnectionStrings["Cmsv2025Db"].ConnectionString;
         }
 
+        /// <inheritdoc />
         public async Task<List<Role>> GetAllRolesAsync()
         {
             var roles = new List<Role>();
@@ -38,6 +42,7 @@ namespace ConsoleAppCms2025.Repository
             return roles;
         }
 
+        /// <inheritdoc />
         public async Task<Role> GetRoleByIdAsync(int roleId)
         {
             Role role = null;
